@@ -1,0 +1,4 @@
+[run]
+branch = True
+source = mldissect
+omit = site-packages, .tox
