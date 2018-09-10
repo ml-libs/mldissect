@@ -1,0 +1,17 @@
+language: python
+sudo: required
+
+
+python:
+  - '3.7-dev'
+
+install:
+    - pip install --upgrade setuptools
+    - pip install codecov
+    - pip install -r requirements-dev.txt
+
+script:
+    make cov_only
+
+after_success:
+    codecov
