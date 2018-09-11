@@ -1,6 +1,7 @@
 import numpy as np
 from collections import deque
 
+
 def multiply_row(row, num_rows):
     return np.repeat(row, repeats=num_rows, axis=0)
 
