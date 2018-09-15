@@ -1,7 +1,6 @@
 from .explainer import (
-    BreakDownExplainer,
-    CLASSIFICATION,
-    REGRESSION,
+    ClassificationExplainer,
+    RegressionExplainer,
     UP,
     DOWN,
 )
@@ -9,9 +8,8 @@ from .explainer import (
 
 __version__ = '0.0.1a0'
 __all__ = (
-    'BreakDownExplainer',
-    'CLASSIFICATION',
-    'REGRESSION',
+    'ClassificationExplainer',
+    'RegressionExplainer',
     'UP',
     'DOWN',
 )

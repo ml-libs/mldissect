@@ -7,12 +7,13 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import train_test_split
 
-from mldissect import BreakDownExplainer, REGRESSION, CLASSIFICATION
+from mldissect import ClassificationExplainer, RegressionExplainer
 from mldissect.utils import multiply_row
 
 
-def test_basic(seed):
+def test_basic_regression(seed):
     boston = load_boston()
+    columns = list(boston.feature_names)
     X, y = boston['data'], boston['target']
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=.2, random_state=seed
@@ -22,10 +23,9 @@ def test_basic(seed):
     clf.fit(X_train, y_train)
     clf.score(X_test, y_test)
 
-    explainer = BreakDownExplainer(
-        clf, X_train, boston.feature_names, REGRESSION)
+    explainer = RegressionExplainer(clf, X_train, columns)
     result = explainer.explain(X_test[0], direction='up')
-    columns, values, contribution, direction = result
+    columns, values, contribution, intercept = result
 
     expected_columns = [
         'LSTAT',
@@ -65,7 +65,7 @@ def test_basic(seed):
     assert np.allclose(contribution, expected_contributions, rtol=1e-05)
 
     result = explainer.explain(X_test[0], direction='down')
-    columns, values, contribution, direction = result
+    columns, values, contribution, intercept = result
 
     expected_columns = [
         'LSTAT',
@@ -123,8 +123,7 @@ def test_basic_pandas():
     clf.fit(df_train, df_train_target)
     clf.score(df_test, df_test_target)
 
-    explainer = BreakDownExplainer(
-        clf, X_train, boston.feature_names, REGRESSION)
+    explainer = RegressionExplainer(clf, X_train, columns)
     result = explainer.explain(X_test[0], direction='up')
     assert result
     result = explainer.explain(X_test[0], direction='down')
@@ -148,7 +147,7 @@ def test_basic_classification(seed):
     clf = RandomForestClassifier(n_estimators=100)
     clf.fit(X_train, y_train)
 
-    explainer = BreakDownExplainer(clf, X_train, columns, CLASSIFICATION)
+    explainer = ClassificationExplainer(clf, X_train, columns)
     result = explainer.explain(X_test[1], direction='up')
     pred = clf.predict_proba(X_test[1:2])
     print(pred)
