@@ -1,7 +1,8 @@
 import numpy as np
+from typing import NamedTuple, List
 
 from .utils import normalize_array, multiply_row, _get_means_from_yhats
-from typing import NamedTuple, List
+
 
 UP = 'up'
 DOWN = 'down'
@@ -86,7 +87,6 @@ class BaseExplainer:
 
 class RegressionExplainer(BaseExplainer):
 
-
     def _mean_predict(self, data):
         return self._clf.predict(data).mean(axis=0)
 
@@ -97,7 +97,6 @@ class RegressionExplainer(BaseExplainer):
     def _init_ydiff(self, yhats_diff):
         yhats_diff.fill(np.NINF)
         return yhats_diff
-
 
     def _explain_top_down(self, observation, data):
         num_rows, num_features = data.shape
@@ -135,7 +134,8 @@ class RegressionExplainer(BaseExplainer):
         means.appendleft(mean_prediction[0])
         means.reverse()
         contributions = np.diff(means)
-        return Explanation(var_names, var_values, contributions, mean_prediction)
+        return Explanation(
+            var_names, var_values, contributions, mean_prediction)
 
 
 class ClassificationExplainer(BaseExplainer):
@@ -186,4 +186,5 @@ class ClassificationExplainer(BaseExplainer):
         means.appendleft(mean_prediction[0])
         means.reverse()
         contributions = np.diff(means)
-        return Explanation(var_names, var_values, contributions, mean_prediction)
+        return Explanation(
+            var_names, var_values, contributions, mean_prediction)
