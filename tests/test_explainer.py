@@ -1,4 +1,4 @@
-
+import pytest
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_boston
@@ -9,8 +9,81 @@ from sklearn.model_selection import train_test_split
 
 from mldissect import ClassificationExplainer, RegressionExplainer
 
+expected_columns_up = [
+    'LSTAT',
+    'PTRATIO',
+    'CRIM',
+    'B',
+    'RM',
+    'INDUS',
+    'CHAS',
+    'NOX',
+    'TAX',
+    'AGE',
+    'ZN',
+    'DIS',
+    'RAD',
+]
 
-def test_basic_regression(seed):
+expected_contributions_up = np.array(
+    [
+        3.68720313,
+        1.36518986,
+        0.2322529,
+        0.11952246,
+        0.0411346,
+        0.03124897,
+        0.,
+        0.,
+        -0.37937527,
+        -0.51270827,
+        -0.61432077,
+        -1.07922686,
+        -1.09927656,
+    ]
+)
+
+
+expected_columns_down = [
+    'LSTAT',
+    'RAD',
+    'ZN',
+    'DIS',
+    'PTRATIO',
+    'AGE',
+    'CRIM',
+    'TAX',
+    'B',
+    'RM',
+    'INDUS',
+    'NOX',
+    'CHAS',
+]
+
+expected_contributions_down = np.array(
+    [
+        3.68720313e+00,
+        -1.09927656e+00,
+        -6.14320765e-01,
+        -1.07922686e+00,
+        1.36518986e+00,
+        -5.12708269e-01,
+        2.32252898e-01,
+        -3.79375268e-01,
+        1.19522456e-01,
+        4.11346046e-02,
+        3.12489740e-02,
+        0.00000000e+00,
+        -3.55271368e-15,
+    ]
+)
+
+
+@pytest.mark.parametrize('exp_columns, exp_contributions, direction', [
+    (expected_columns_up, expected_contributions_up, 'up'),
+    (expected_columns_down, expected_contributions_down, 'down')
+])
+def test_regression(seed, exp_columns, exp_contributions, direction):
     boston = load_boston()
     columns = list(boston.feature_names)
     X, y = boston['data'], boston['target']
@@ -20,91 +93,20 @@ def test_basic_regression(seed):
 
     clf = LassoCV()
     clf.fit(X_train, y_train)
-    clf.score(X_test, y_test)
 
+    observation = X_test[0]
     explainer = RegressionExplainer(clf, X_train, columns)
-    result = explainer.explain(X_test[0], direction='up')
+    result = explainer.explain(observation, direction=direction)
     columns, values, contribution, intercept = result
-
-    expected_columns = [
-        'LSTAT',
-        'PTRATIO',
-        'CRIM',
-        'B',
-        'RM',
-        'INDUS',
-        'CHAS',
-        'NOX',
-        'TAX',
-        'AGE',
-        'ZN',
-        'DIS',
-        'RAD',
-    ]
-
-    expected_contributions = np.array(
-        [
-            3.68720313,
-            1.36518986,
-            0.2322529,
-            0.11952246,
-            0.0411346,
-            0.03124897,
-            0.,
-            0.,
-            -0.37937527,
-            -0.51270827,
-            -0.61432077,
-            -1.07922686,
-            -1.09927656,
-        ]
-    )
-
-    assert columns.tolist() == expected_columns
-    assert np.allclose(contribution, expected_contributions, rtol=1e-05)
-
-    result = explainer.explain(X_test[0], direction='down')
-    columns, values, contribution, intercept = result
-
-    expected_columns = [
-        'LSTAT',
-        'RAD',
-        'ZN',
-        'DIS',
-        'PTRATIO',
-        'AGE',
-        'CRIM',
-        'TAX',
-        'B',
-        'RM',
-        'INDUS',
-        'NOX',
-        'CHAS',
-    ]
-
-    expected_contributions = np.array(
-        [
-            3.68720313e+00,
-            -1.09927656e+00,
-            -6.14320765e-01,
-            -1.07922686e+00,
-            1.36518986e+00,
-            -5.12708269e-01,
-            2.32252898e-01,
-            -3.79375268e-01,
-            1.19522456e-01,
-            4.11346046e-02,
-            3.12489740e-02,
-            0.00000000e+00,
-            -3.55271368e-15,
-        ]
-    )
-
-    assert columns.tolist() == expected_columns
-    assert np.allclose(contribution, expected_contributions, rtol=1e-05)
+    assert columns.tolist() == exp_columns
+    assert np.allclose(contribution, exp_contributions, rtol=1e-05)
 
 
-def test_basic_pandas():
+@pytest.mark.parametrize('exp_columns, exp_contributions, direction', [
+    (expected_columns_up, expected_contributions_up, 'up'),
+    (expected_columns_down, expected_contributions_down, 'down')
+])
+def test_regression_pandas(seed, exp_columns, exp_contributions, direction):
     boston = load_boston()
     X, y = boston['data'], boston['target']
     X_train, X_test, y_train, y_test = train_test_split(
@@ -116,21 +118,18 @@ def test_basic_pandas():
     df_train_target = pd.DataFrame(data=y_train, columns=['target'])
 
     df_test = pd.DataFrame(data=X_test, columns=columns)
-    df_test_target = pd.DataFrame(data=y_test, columns=['target'])
 
     clf = LassoCV()
     clf.fit(df_train, df_train_target)
-    clf.score(df_test, df_test_target)
-
-    explainer = RegressionExplainer(clf, X_train, columns)
-    result = explainer.explain(X_test[0], direction='up')
-    assert result
-    result = explainer.explain(X_test[0], direction='down')
-    assert result
-
+    observation = df_test.iloc[0]
+    explainer = RegressionExplainer(clf, df_train, columns)
+    result = explainer.explain(observation, direction=direction)
+    columns, values, contribution, intercept = result
+    assert columns.tolist() == exp_columns
+    assert np.allclose(contribution, exp_contributions, rtol=1e-05)
 
 
-def test_basic_classification(seed):
+def test__classification(seed):
     iris = load_iris()
     columns = iris.feature_names
     X = iris.data
@@ -142,12 +141,9 @@ def test_basic_classification(seed):
 
     explainer = ClassificationExplainer(clf, X_train, columns)
     result = explainer.explain(X_test[1], direction='up')
-    pred = clf.predict_proba(X_test[1:2])
-    print(pred)
+    # pred = clf.predict_proba(X_test[1:2])
     assert result
-    print(result)
+    # assert pred
 
-    return
     result = explainer.explain(X_test[0], direction='down')
     assert result
-    print(result)
