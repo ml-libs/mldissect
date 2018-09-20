@@ -15,6 +15,7 @@ def read(f):
 
 
 install_requires = [
+    'numpy'
 ]
 extras_require = {}
 
@@ -47,7 +48,7 @@ classifiers = [
 
 setup(name='mldissect',
       version=read_version(),
-      description=('mldissect'),
+      description=('mldissect - model agnostic explanations'),
       long_description='\n\n'.join((read('README.rst'), read('CHANGES.txt'))),
       install_requires=install_requires,
       classifiers=classifiers,
