@@ -9,7 +9,7 @@ test: flake
 	py.test -s -v $(FLAGS) ./tests/
 
 vtest:
-	py.test -s -v $(FLAGS) ./tests/
+	py.test -s -vv $(FLAGS) ./tests/
 
 checkrst:
 	python setup.py check --restructuredtext
