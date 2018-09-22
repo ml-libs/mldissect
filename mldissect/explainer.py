@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 import numpy as np
 from typing import NamedTuple, List
 
@@ -15,7 +17,7 @@ class Explanation(NamedTuple):
     intercept: float
 
 
-class BaseExplainer:
+class BaseExplainer(ABC):
 
     def __init__(self, clf, data, columns):
         self._clf = clf
@@ -33,17 +35,21 @@ class BaseExplainer:
             exp = self._explain_top_down(instance, data)
         return exp
 
+    @abstractmethod
     def _mean_predict(self, data):
-        pass
+        pass  # pragma: no cover
 
+    @abstractmethod
     def _most_important(self, yhats_diff):
-        pass
+        pass  # pragma: no cover
 
+    @abstractmethod
     def _init_ydiff(self, yhats_diff, default=0):
-        pass
+        pass  # pragma: no cover
 
+    @abstractmethod
     def _least_important(self, yhats_diff):
-        pass
+        pass  # pragma: no cover
 
     def _format_result(self, instance, important_variables, mean_predictions,
                        baseline, position=0):
