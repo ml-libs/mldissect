@@ -10,7 +10,7 @@ UP = 'up'
 DOWN = 'down'
 
 
-class Explanation(NamedTuple):
+class ExplanationData(NamedTuple):
     columns: List[str]
     values: List[float]
     contribution: List[float]
@@ -57,7 +57,7 @@ class BaseExplainer(ABC):
         var_values = instance[0, important_variables]
         means = np.insert(mean_predictions, position, baseline, axis=0)
         contributions = np.diff(np.array(means), axis=0).reshape(1, -1)
-        return Explanation(var_names, var_values, contributions, baseline)
+        return ExplanationData(var_names, var_values, contributions, baseline)
 
     def _explain_bottom_up(self, instance, data):
         num_rows, num_features = data.shape
