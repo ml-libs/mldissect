@@ -1,3 +1,4 @@
+import numpy as np
 from terminaltables import AsciiTable
 
 
@@ -12,14 +13,14 @@ class Explanation:
         header = ('Feature', 'Value', 'Contribution')
         table_data.append(header)
 
-        baseline = ('baseline', "-", str(self.data.intercept[0][0]))
+        baseline = ('baseline', '-', str(self.data.intercept))
         table_data.append(baseline)
         d = self.data
         for i in range(len(self.data.columns)):
             row = (
                 d.columns[i],
                 d.values[i],
-                round(d.contribution[0][i], self.digits),
+                np.round_(d.contribution[i], self.digits),
             )
             table_data.append(row)
         return table_data
