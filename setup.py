@@ -15,7 +15,8 @@ def read(f):
 
 
 install_requires = [
-    'numpy'
+    'numpy',
+    'terminaltables',
 ]
 extras_require = {}
 
