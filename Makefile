@@ -28,7 +28,7 @@ testloop:
         py.test -s -v $(FLAGS) ./tests/ ; \
     done
 
-cov cover coverage: flake checkrst
+cov cover coverage: flake
 	py.test -s -v --cov-report term --cov-report html --cov mldissect ./tests
 	@echo "open file://`pwd`/htmlcov/index.html"
 
@@ -36,7 +36,7 @@ cov_only: flake
 	py.test -s -v --cov-report term --cov-report html --cov mldissect ./tests
 	@echo "open file://`pwd`/htmlcov/index.html"
 
-ci: flake mypy
+ci: flake
 	py.test -s -v --cov-report term --cov-report html --cov mldissect ./tests
 	@echo "open file://`pwd`/htmlcov/index.html"
 
