@@ -3,7 +3,11 @@ mldissect
 .. image:: https://travis-ci.com/ml-libs/mldissect.svg?branch=master
     :target: https://travis-ci.com/ml-libs/mldissect
 .. image:: https://codecov.io/gh/ml-libs/mldissect/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/ml-libs/mldissect
+    :target: https://codecov.io/gh/ml-libs/mldissect 
+.. image:: https://api.codeclimate.com/v1/badges/bc29bc214f39b54ef30a/maintainability
+   :target: https://codeclimate.com/github/ml-libs/mldissect/maintainability
+   :alt: Maintainability
+
 
 **mldissect** is model agnostic predictions explainer, library can show
 contribution of each feature of your prediction value.
