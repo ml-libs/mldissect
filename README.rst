@@ -25,6 +25,7 @@ Basic Usage
 ===========
 
 .. code:: python
+
     # lets train a model
     boston = load_boston()
     columns = list(boston.feature_names)
