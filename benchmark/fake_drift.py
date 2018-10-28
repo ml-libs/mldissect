@@ -1,19 +1,20 @@
-import numpy as np
-import pandas as pd
-import shap
 from collections import namedtuple
 
 
-from lime.lime_tabular import LimeTabularExplainer
-from sklearn.datasets import load_boston
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LassoCV
 
-from mldissect import ClassificationExplainer, RegressionExplainer
-from mldissect.explanation import Explanation
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import shap
+import matplotlib.pyplot as plt
+from lime.lime_tabular import LimeTabularExplainer
+from mldissect import RegressionExplainer
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.datasets import load_boston
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 
@@ -39,13 +40,15 @@ def add_fake_columns(df, n=1, seed=42):
     return df
 
 
-def shap_explainer(model, data):
-    explainer = shap.KernelExplainer(model.predict, data.X_test.iloc[:10, :])
-    values = explainer.shap_values(data.X_test)
-    return values
+def shap_explainer(model, data, rows=10):
+    #d = shap.kmeans(data.X_test, 1)
+    explainer = shap.KernelExplainer(model.predict, data.X_test)
+    values = explainer.shap_values(data.X_test.iloc[:rows, :])
+    intercept = np.ones((values.shape[0], 1)) * explainer.expected_value
+    return np.append(intercept, values, axis=1)
 
 
-def lime_explanier(model, data):
+def lime_explanier(model, data, rows=10):
     categorical_features = []
     explainer = LimeTabularExplainer(
         data.X_train.values,
@@ -56,19 +59,31 @@ def lime_explanier(model, data):
         mode=data.meta['objective'])
     results = []
 
-    for instance in data.X_test.values:
+    for instance in data.X_test.values[0:rows]:
         exp = explainer.explain_instance(
             instance, model.predict,
             num_features=data.X_train.shape[0])
 
         values = [e[1] for e in sorted(exp.local_exp[0], key=lambda v: v[0])]
-        results.append([exp.intercept] + values)
+        results.append(
+            [exp.intercept[0]] + values
+        )
+
     return np.array(results)
 
 
+def breakdown_explainer(model, data, rows=10):
+    columns = data.X_test.columns
+    explainer = RegressionExplainer(model, data.X_train, columns)
+    results = []
+    for instance in data.X_test.values[0:rows]:
+        result = explainer.explain(instance)
+        columns, values, contribution, intercept, order = result
+        original_order = np.argsort(order)
+        c = contribution[original_order]
+        results.append(np.append(np.array([intercept]), c, axis=0))
 
-def breakdown_explainer(model, X_train, X_text):
-    pass
+    return np.array(results)
 
 
 Data = namedtuple("Data", ['X_train', 'X_test', 'y_train', 'y_test', 'meta'])
@@ -131,17 +146,35 @@ def build_svr_regressor(data):
 
 
 def main():
+    np.set_printoptions(suppress=True)
     seed = 42
-    num_features = 5
-    data = boston_fake_features(num_features=num_features, seed=seed)
-    rf = build_rf_regressor(data)
+    num_features = 2
+    for num_features in [5]:
+        data = boston_fake_features(num_features=num_features, seed=seed)
+        rf = build_rf_regressor(data)
+        rows = -1
+        exp1 = lime_explanier(rf, data, rows=rows)
+        exp2 = shap_explainer(rf, data, rows=rows)
+        exp3 = breakdown_explainer(rf, data, rows=rows)
+        import ipdb
+        ipdb.set_trace()
+        print(exp3)
 
-    exp2 = shap_explainer(rf, data)
-    exp1 = lime_explanier(rf, data)
+        fake_columns = data.X_train.columns[-num_features:]
+        prefix = 'boston_rf_'
 
-    print(exp1)
-    print(exp2)
-    print(exp1 - exp2)
+        plot_fake_box(exp1[:, -num_features:], fake_columns, 'lime', prefix)
+        plot_fake_box(exp2[:, -num_features:], fake_columns, 'shap', prefix)
+        plot_fake_box(exp3[:, -num_features:], fake_columns, 'breakdown', prefix)
+
+
+def plot_fake_box(data, columns, method, prefix=''):
+    sns_plot = sns.boxplot(data=data)
+    sns_plot.set(xlabel='fake features', ylabel='values distribution')
+    plt.xticks(plt.xticks()[0], columns)
+    name = "{}{}_fake_feature_{}".format(prefix, method, len(columns))
+    sns_plot.figure.savefig("{}.png".format(name))
+    plt.clf()
 
 
 if __name__ == '__main__':
