@@ -11,6 +11,7 @@ class ExplanationData(NamedTuple):
     values: List[float]
     contribution: List[float]
     intercept: float
+    order: List[int]
 
 
 class BaseExplainer(ABC):
@@ -53,7 +54,9 @@ class BaseExplainer(ABC):
         if self.objective == 'regression':
             contributions = contributions.reshape(1, -1)[0]
             baseline = baseline[0]
-        return ExplanationData(var_names, var_values, contributions, baseline)
+        return ExplanationData(
+            var_names, var_values, contributions, baseline,
+            important_variables)
 
     def _explain_bottom_up(self, instance, data):
         num_rows, num_features = data.shape
@@ -86,7 +89,6 @@ class BaseExplainer(ABC):
             mean_predictions[i] = yhats_mean[most_important_idx]
             data[:, most_important_idx] = new_data[:, most_important_idx]
             relaxed_features.add(most_important_idx)
-
         return self._format_result(
             instance, important_variables, mean_predictions, baseline)
 
