@@ -63,7 +63,7 @@ def test_regression(seed, exp_columns, exp_contributions):
     observation = X_test[0]
     explainer = RegressionExplainer(clf, X_train, columns)
     result = explainer.explain(observation)
-    columns, values, contribution, intercept = result
+    columns, values, contribution, intercept, _ = result
     assert columns.tolist() == exp_columns
     assert np.allclose(contribution, exp_contributions, rtol=1e-05)
     prediction = clf.predict(X_test[0:1])[0]
@@ -95,7 +95,7 @@ def test_regression_pandas(seed, exp_columns, exp_contributions):
     observation = df_test.iloc[0]
     explainer = RegressionExplainer(clf, df_train, columns)
     result = explainer.explain(observation)
-    columns, values, contribution, intercept = result
+    columns, values, contribution, intercept, _ = result
     assert columns.tolist() == exp_columns
     assert np.allclose(contribution, exp_contributions, rtol=1e-05)
 
@@ -113,7 +113,7 @@ def test_classification(seed):
 
     explainer = ClassificationExplainer(clf, X_train, columns)
     result = explainer.explain(X_test[0])
-    columns, values, contribution, intercept = result
+    columns, values, contribution, intercept, _ = result
     prediction = clf.predict_proba(X_test[0:1])
     explained = np.sum(contribution, axis=0) + intercept
     assert np.allclose(prediction, explained)
